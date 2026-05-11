@@ -11,13 +11,13 @@ import {
 } from 'lucide-react';
 
 const Dashboard = () => {
-  const { account } = useWeb3();
+  const { account, userStats } = useWeb3();
 
   const stats = [
-    { label: 'Total XP', value: '2,450', icon: <Zap className="text-cyber-blue" />, progress: 65 },
-    { label: 'Current Streak', value: '12 Days', icon: <Flame className="text-orange-500" />, progress: 40 },
-    { label: 'Arena Rank', value: '#128', icon: <Trophy className="text-yellow-500" />, progress: 85 },
-    { label: 'Games Played', value: '342', icon: <Award className="text-cyber-purple" />, progress: null },
+    { label: 'Total XP', value: userStats.xp.toLocaleString(), icon: <Zap className="text-cyber-blue" />, progress: Math.min(100, (userStats.xp % 100)) },
+    { label: 'Current Streak', value: `${userStats.streak} Days`, icon: <Flame className="text-orange-500" />, progress: null },
+    { label: 'Arena Level', value: `LVL ${userStats.level}`, icon: <Trophy className="text-yellow-500" />, progress: null },
+    { label: 'Games Played', value: userStats.gamesPlayed.toLocaleString(), icon: <Award className="text-cyber-purple" />, progress: null },
   ];
 
   const badges = [
@@ -45,10 +45,10 @@ const Dashboard = () => {
         <div className="glass-panel px-8 py-4 flex items-center gap-6">
           <div className="text-right">
             <div className="text-xs font-bold text-gray-500 uppercase">Current Level</div>
-            <div className="text-2xl font-black text-white italic">LVL 24</div>
+            <div className="text-2xl font-black text-white italic">LVL {userStats.level}</div>
           </div>
           <div className="w-32 h-2 bg-white/10 rounded-full overflow-hidden">
-            <div className="w-[65%] h-full bg-cyber-gradient" />
+            <div className="w-[65%] h-full bg-cyber-gradient" style={{ width: `${userStats.xp % 100}%` }} />
           </div>
         </div>
       </div>

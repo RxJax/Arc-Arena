@@ -16,7 +16,7 @@ import {
 import confetti from 'canvas-confetti';
 
 const Arena = () => {
-  const { account, signer, connectWallet } = useWeb3();
+  const { account, signer, connectWallet, addXP, userStats } = useWeb3();
   const [activeGame, setActiveGame] = useState(null);
   const [txPending, setTxPending] = useState(false);
   const [lastTx, setLastTx] = useState(null);
@@ -28,7 +28,8 @@ const Arena = () => {
       description: 'Sign in daily to earn XP and build your streak.',
       icon: <CalendarCheck size={32} className="text-blue-400" />,
       fee: '0.01',
-      color: 'blue'
+      color: 'blue',
+      xp: 50
     },
     {
       id: 'coin-flip',
@@ -36,7 +37,8 @@ const Arena = () => {
       description: 'Double your USDC or lose it all. 50/50 chance.',
       icon: <Dices size={32} className="text-purple-400" />,
       fee: '0.5',
-      color: 'purple'
+      color: 'purple',
+      xp: 20
     },
     {
       id: 'spin-wheel',
@@ -44,7 +46,8 @@ const Arena = () => {
       description: 'Spin for XP, Badges, and Mystery Rewards.',
       icon: <RotateCw size={32} className="text-pink-400" />,
       fee: '0.1',
-      color: 'pink'
+      color: 'pink',
+      xp: 0 // Dynamic
     },
     {
       id: 'mystery-box',
@@ -52,7 +55,8 @@ const Arena = () => {
       description: 'Unbox legendary loot and arena badges.',
       icon: <Box size={32} className="text-yellow-400" />,
       fee: '1.0',
-      color: 'yellow'
+      color: 'yellow',
+      xp: 0 // Dynamic
     },
     {
       id: 'reaction',
@@ -60,7 +64,8 @@ const Arena = () => {
       description: 'Test your speed and climb the leaderboard.',
       icon: <Timer size={32} className="text-cyan-400" />,
       fee: '0.05',
-      color: 'cyan'
+      color: 'cyan',
+      xp: 0 // Dynamic
     }
   ];
 
@@ -74,13 +79,9 @@ const Arena = () => {
     setLastTx(null);
 
     try {
-      // Simulate real Arc Testnet transaction
-      // In a real app, this would be: 
-      // const tx = await signer.sendTransaction({ to: GAME_CONTRACT, value: ethers.utils.parseEther(game.fee) });
-      
       const txRequest = {
-        to: "0xe693240068ae7be819446d3284b979e312061619", // ArcArena Treasury Placeholder (lowercased)
-        value: ethers.utils.parseEther("0.00001"), // Tiny fee for demo purposes on testnet
+        to: "0xe693240068ae7be819446d3284b979e312061619", // ArcArena Treasury
+        value: ethers.utils.parseEther("0.00001"), // Simulating USDC fee
       };
 
       const tx = await signer.sendTransaction(txRequest);
@@ -89,6 +90,52 @@ const Arena = () => {
       const receipt = await tx.wait();
       
       if (receipt.status === 1) {
+        let xpEarned = game.xp;
+        let additionalData = {};
+
+        if (game.id === 'check-in') {
+          const now = Date.now();
+          const lastCheckIn = userStats.lastCheckIn;
+          let newStreak = 1;
+          
+          if (lastCheckIn) {
+            const diff = now - lastCheckIn;
+            if (diff < 86400000 * 2) { // Within 48 hours
+              newStreak = userStats.streak + 1;
+            }
+          }
+          additionalData = { streak: newStreak, lastCheckIn: now };
+        } else if (game.id === 'coin-flip') {
+          const won = Math.random() > 0.5;
+          xpEarned = won ? 50 : 10;
+          additionalData = { result: won ? 'Won' : 'Lost' };
+        } else if (game.id === 'spin-wheel') {
+          const tiers = [5, 10, 20, 50, 100];
+          xpEarned = tiers[Math.floor(Math.random() * tiers.length)];
+        } else if (game.id === 'mystery-box') {
+          const rarities = [
+            { name: 'Common', xp: 20 },
+            { name: 'Rare', xp: 50 },
+            { name: 'Epic', xp: 150 },
+            { name: 'Legendary', xp: 500 }
+          ];
+          const roll = Math.random();
+          let reward;
+          if (roll > 0.95) reward = rarities[3];
+          else if (roll > 0.8) reward = rarities[2];
+          else if (roll > 0.5) reward = rarities[1];
+          else reward = rarities[0];
+          
+          xpEarned = reward.xp;
+          additionalData = { rarity: reward.name };
+        } else if (game.id === 'reaction') {
+          const speed = Math.floor(Math.random() * 400) + 100; // Simulating reaction time
+          xpEarned = Math.max(10, 500 - speed);
+          additionalData = { reactionTime: `${speed}ms` };
+        }
+
+        await addXP(xpEarned, game.name, additionalData);
+
         confetti({
           particleCount: 150,
           spread: 70,

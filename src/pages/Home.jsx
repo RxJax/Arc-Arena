@@ -4,9 +4,11 @@ import { Play, Coins, Shield, Users, Zap, Activity } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Home = () => {
+  const { globalActivity } = useWeb3();
+
   return (
     <div className="max-w-7xl mx-auto">
-      {/* Hero Section */}
+      {/* ... Hero and Stats sections remain same ... */}
       <section className="flex flex-col items-center justify-center text-center min-h-[70vh]">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -79,7 +81,7 @@ const Home = () => {
         ))}
       </section>
 
-      {/* Activity Feed Placeholder */}
+      {/* Activity Feed */}
       <section className="mt-32 glass-panel p-8 relative overflow-hidden">
         <div className="absolute top-0 right-0 p-4 opacity-10">
           <Activity size={100} />
@@ -90,22 +92,37 @@ const Home = () => {
         </h2>
         
         <div className="space-y-4">
-          {[1, 2, 3].map((_, i) => (
-            <div key={i} className="flex items-center justify-between py-4 border-b border-white/5 last:border-0">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyber-blue to-cyber-purple p-[1px]">
-                  <div className="w-full h-full rounded-full bg-cyber-dark flex items-center justify-center text-xs font-bold">
-                    0x{Math.random().toString(16).slice(2, 4)}
+          {globalActivity.length > 0 ? (
+            globalActivity.map((act, i) => (
+              <motion.div 
+                key={act.timestamp} 
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="flex items-center justify-between py-4 border-b border-white/5 last:border-0"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyber-blue to-cyber-purple p-[1px]">
+                    <div className="w-full h-full rounded-full bg-cyber-dark flex items-center justify-center text-xs font-bold">
+                      {act.address.slice(2, 4)}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="font-bold">
+                      {act.address.slice(0, 6)}...{act.address.slice(-4)} earned {act.xp} XP in {act.type} 
+                      {act.result && ` (${act.result})`}
+                      {act.rarity && ` (${act.rarity})`}
+                    </div>
+                    <div className="text-xs text-gray-500">{new Date(act.timestamp).toLocaleTimeString()}</div>
                   </div>
                 </div>
-                <div>
-                  <div className="font-bold">Player_420 opened a Mystery Box</div>
-                  <div className="text-xs text-gray-500">2 minutes ago</div>
+                <div className="text-cyber-blue font-mono text-sm underline cursor-pointer">
+                  {act.address.slice(0, 8)}...
                 </div>
-              </div>
-              <div className="text-cyber-blue font-mono text-sm underline cursor-pointer">0x4d...8d02</div>
-            </div>
-          ))}
+              </motion.div>
+            ))
+          ) : (
+            <div className="text-gray-500 italic py-8 text-center">No recent activity. Enter the arena to start!</div>
+          )}
         </div>
       </section>
     </div>

@@ -1,16 +1,12 @@
-import React from 'react';
+import { useWeb3 } from '../context/Web3Context';
 import { motion } from 'framer-motion';
 import { Trophy, Medal, Crown, Star } from 'lucide-react';
 
 const Leaderboard = () => {
-  const players = [
-    { rank: 1, address: '0x82...a12b', xp: '24,500', games: '1,240', streak: '45', avatar: '🐉' },
-    { rank: 2, address: '0xf1...90cc', xp: '21,200', games: '980', streak: '32', avatar: '🦊' },
-    { rank: 3, address: '0x34...d4ee', xp: '19,800', games: '850', streak: '28', avatar: '🐺' },
-    { rank: 4, address: '0x12...56ff', xp: '15,400', games: '720', streak: '15', avatar: '🦅' },
-    { rank: 5, address: '0x9a...bcde', xp: '12,900', games: '640', streak: '12', avatar: '🦁' },
-    { rank: 6, address: '0x7e...3421', xp: '10,500', games: '580', streak: '8', avatar: '🤖' },
-  ];
+  const { leaderboard } = useWeb3();
+
+  // If leaderboard is empty, show a few placeholders or just empty
+  const displayPlayers = leaderboard.length > 0 ? leaderboard : [];
 
   return (
     <div className="max-w-5xl mx-auto">
@@ -36,33 +32,35 @@ const Leaderboard = () => {
         </div>
 
         <div className="divide-y divide-white/5">
-          {players.map((player, i) => (
+          {displayPlayers.map((player, i) => (
             <motion.div
-              key={player.rank}
+              key={player.address}
               initial={{ x: -20, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={{ delay: i * 0.1 }}
               className={`grid grid-cols-6 gap-4 p-6 items-center hover:bg-white/5 transition-colors group ${i < 3 ? 'bg-cyber-blue/5' : ''}`}
             >
               <div className="col-span-1 flex items-center gap-3">
-                {player.rank === 1 && <Crown size={18} className="text-yellow-500" />}
-                {player.rank === 2 && <Medal size={18} className="text-gray-400" />}
-                {player.rank === 3 && <Medal size={18} className="text-amber-600" />}
-                {player.rank > 3 && <span className="font-mono text-gray-500 pl-1">{player.rank}</span>}
+                {i === 0 && <Crown size={18} className="text-yellow-500" />}
+                {i === 1 && <Medal size={18} className="text-gray-400" />}
+                {i === 2 && <Medal size={18} className="text-amber-600" />}
+                {i > 2 && <span className="font-mono text-gray-500 pl-1">{i + 1}</span>}
               </div>
               
               <div className="col-span-2 flex items-center gap-4">
                 <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-xl border border-white/10 group-hover:border-cyber-blue/30 transition-all">
-                  {player.avatar}
+                  👤
                 </div>
-                <div className="font-bold text-sm tracking-wide font-mono">{player.address}</div>
+                <div className="font-bold text-sm tracking-wide font-mono">
+                  {player.address.slice(0, 6)}...{player.address.slice(-4)}
+                </div>
               </div>
 
               <div className="col-span-1 text-center">
-                <div className="font-black text-cyber-blue">{player.xp}</div>
+                <div className="font-black text-cyber-blue">{player.xp.toLocaleString()}</div>
               </div>
 
-              <div className="col-span-1 text-center text-gray-400 font-bold">{player.games}</div>
+              <div className="col-span-1 text-center text-gray-400 font-bold">{player.gamesPlayed}</div>
               
               <div className="col-span-1 text-center">
                 <div className="inline-flex items-center gap-1 text-orange-500 font-bold">
