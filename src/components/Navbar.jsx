@@ -11,11 +11,21 @@ const Navbar = () => {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-cyber-dark/80 backdrop-blur-md border-b border-white/10 px-6 py-4">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2">
-          <div className="w-10 h-10 bg-cyber-gradient rounded-lg flex items-center justify-center shadow-[0_0_15px_rgba(0,242,255,0.5)]">
-            <span className="text-2xl font-black text-white italic">A</span>
+        <Link to="/" className="flex items-center gap-4 group">
+          <div className="relative">
+            {/* Soft Cyan Glow behind logo */}
+            <div className="absolute -inset-2 bg-cyber-blue/30 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-all duration-500" />
+            <img 
+              src="/logo.png" 
+              alt="ArcArena" 
+              className="w-12 h-12 relative object-contain filter drop-shadow-[0_0_12px_rgba(0,242,255,0.6)]" 
+            />
           </div>
-          <span className="text-2xl font-black tracking-tighter text-white italic">ARC<span className="text-cyber-blue">ARENA</span></span>
+          <div className="flex flex-col -space-y-2">
+            <span className="text-3xl font-black italic tracking-tighter text-white leading-none">
+              ARC<span className="text-[#00f2ff] drop-shadow-[0_0_8px_rgba(0,242,255,0.4)]">ARENA</span>
+            </span>
+          </div>
         </Link>
 
         <div className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-400">
