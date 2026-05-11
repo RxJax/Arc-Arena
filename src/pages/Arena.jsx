@@ -79,7 +79,7 @@ const Arena = () => {
       // const tx = await signer.sendTransaction({ to: GAME_CONTRACT, value: ethers.utils.parseEther(game.fee) });
       
       const txRequest = {
-        to: "0x0000000000000000000000000000000000000000", // Placeholder for actual game contract
+        to: "0xe693240068aE7Be819446d3284B979E312061619", // ArcArena Treasury Placeholder
         value: ethers.utils.parseEther("0.00001"), // Tiny fee for demo purposes on testnet
       };
 
