@@ -17,7 +17,6 @@ const Navbar = () => {
             <div className="absolute -inset-2 bg-cyber-blue/30 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-all duration-500" />
             <img 
               src="/logo.png" 
-              alt="ArcArena" 
               className="w-12 h-12 relative object-contain filter drop-shadow-[0_0_12px_rgba(0,242,255,0.6)]" 
             />
           </div>
