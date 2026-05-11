@@ -98,7 +98,11 @@ const Arena = () => {
       }
     } catch (err) {
       console.error(err);
-      alert("Transaction failed: " + err.message);
+      if (err.message.includes('txpool is full')) {
+        alert("Arc Testnet is currently congested (txpool full). Please wait a minute and try again!");
+      } else {
+        alert("Transaction failed: " + err.message);
+      }
     } finally {
       setTxPending(false);
     }
