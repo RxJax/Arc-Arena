@@ -12,7 +12,8 @@ import {
   ExternalLink,
   Loader2,
   Activity,
-  Zap
+  Zap,
+  Shield
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
