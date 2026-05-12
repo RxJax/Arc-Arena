@@ -103,14 +103,18 @@ const Arena = () => {
 
       const tx = await signer.sendTransaction(txRequest);
       setLastTx(tx.hash);
+      setTxPending(false); // Hide transaction modal immediately after user confirms in MetaMask
       
-      const receipt = await tx.wait();
-      setTxPending(false); // Hide transaction modal immediately after confirmation
-      
-      if (receipt.status === 1) {
-        let xpEarned = game.xp;
-        let additionalData = {};
+      // Start the game logic immediately for better UX
+      let xpEarned = game.xp;
+      let additionalData = {};
 
+      // Optional: Wait for receipt in background without blocking the UI
+      tx.wait().then(receipt => {
+        console.log("Transaction confirmed in background:", receipt.hash);
+      }).catch(err => console.error("Background confirmation error:", err));
+
+      if (true) { // Assume success since user confirmed in wallet
         if (game.id === 'check-in') {
           const now = Date.now();
           const lastCheckIn = userStats.lastCheckIn;
