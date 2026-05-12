@@ -8,21 +8,9 @@ const Faucet = () => {
   const [loading, setLoading] = useState(false);
   const [txHash, setTxHash] = useState(null);
 
-  const requestFunds = async () => {
-    if (!account) return;
-    setLoading(true);
-    setTxHash(null);
-
-    try {
-      // In a real scenario, this would call a faucet API or contract
-      // We'll simulate a transaction receipt
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      setTxHash('0x' + Math.random().toString(16).slice(2, 66));
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
+  const requestFunds = () => {
+    // Open the official Circle Faucet in a new tab
+    window.open('https://faucet.circle.com/', '_blank');
   };
 
   return (
@@ -59,11 +47,10 @@ const Faucet = () => {
 
             <button
               onClick={requestFunds}
-              disabled={!account || loading}
               className="w-full btn-cyber flex items-center justify-center gap-2 text-white"
             >
-              {loading ? <Loader2 className="animate-spin" size={20} /> : <Droplets size={20} />}
-              {loading ? 'REQUESTING...' : 'REQUEST 10 USDC'}
+              <ExternalLink size={20} />
+              CLAIM VIA CIRCLE
             </button>
 
             {txHash && (
