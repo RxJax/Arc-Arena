@@ -28,6 +28,9 @@ const Arena = () => {
   const [isSpinning, setIsSpinning] = useState(false);
   const [spinResult, setSpinResult] = useState(null);
   const [rotation, setRotation] = useState(0);
+  const [showMysteryBox, setShowMysteryBox] = useState(false);
+  const [isUnboxing, setIsUnboxing] = useState(false);
+  const [boxReward, setBoxReward] = useState(null);
 
   const games = [
     {
@@ -169,12 +172,17 @@ const Arena = () => {
           setShowSpinWheel(false);
           setSpinResult(null);
         } else if (game.id === 'mystery-box') {
+          setShowMysteryBox(true);
+          setIsUnboxing(true);
+          setBoxReward(null);
+
           const rarities = [
-            { name: 'Common', xp: 20 },
-            { name: 'Rare', xp: 50 },
-            { name: 'Epic', xp: 150 },
-            { name: 'Legendary', xp: 500 }
+            { name: 'Common', xp: 50, color: 'text-gray-400' },
+            { name: 'Rare', xp: 150, color: 'text-cyber-blue' },
+            { name: 'Epic', xp: 450, color: 'text-cyber-purple' },
+            { name: 'Legendary', xp: 1000, color: 'text-cyber-pink', badge: 'Diamond' }
           ];
+
           const roll = Math.random();
           let reward;
           if (roll > 0.95) reward = rarities[3];
@@ -182,8 +190,16 @@ const Arena = () => {
           else if (roll > 0.5) reward = rarities[1];
           else reward = rarities[0];
           
+          // Shaking animation time
+          await new Promise(resolve => setTimeout(resolve, 3000));
+          
+          setIsUnboxing(false);
+          setBoxReward(reward);
           xpEarned = reward.xp;
-          additionalData = { rarity: reward.name };
+          additionalData = { rarity: reward.name, badge: reward.badge };
+
+          await new Promise(resolve => setTimeout(resolve, 4000));
+          setShowMysteryBox(false);
         } else if (game.id === 'reaction') {
           const speed = Math.floor(Math.random() * 400) + 100; // Simulating reaction time
           xpEarned = Math.max(10, 500 - speed);
@@ -387,6 +403,78 @@ const Arena = () => {
                     <p className="text-gray-400 font-bold text-sm uppercase">
                       +{spinResult.xp} XP AWARDED
                     </p>
+                  </motion.div>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Mystery Box Modal */}
+      <AnimatePresence>
+        {showMysteryBox && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[110] bg-black/90 backdrop-blur-md flex items-center justify-center p-6"
+          >
+            <div className="glass-panel max-w-sm w-full p-10 text-center relative overflow-hidden">
+              <h2 className="text-3xl font-black italic mb-8">MYSTERY <span className="text-yellow-400">BOX</span></h2>
+              
+              <div className="relative h-48 flex items-center justify-center mb-10">
+                <AnimatePresence mode="wait">
+                  {isUnboxing ? (
+                    <motion.div
+                      key="box"
+                      animate={{ 
+                        rotate: [0, -10, 10, -10, 10, 0],
+                        scale: [1, 1.1, 1]
+                      }}
+                      transition={{ 
+                        repeat: Infinity, 
+                        duration: 0.5 
+                      }}
+                      className="text-yellow-400 drop-shadow-[0_0_20px_rgba(250,204,21,0.4)]"
+                    >
+                      <Box size={100} />
+                    </motion.div>
+                  ) : boxReward && (
+                    <motion.div
+                      key="reward"
+                      initial={{ scale: 0, rotate: -180 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      className="flex flex-col items-center"
+                    >
+                      <div className={`w-24 h-24 rounded-3xl bg-white/5 border-2 border-current ${boxReward.color} flex items-center justify-center mb-4 shadow-[0_0_40px_rgba(255,255,255,0.1)]`}>
+                        <span className="text-4xl font-black italic">XP</span>
+                      </div>
+                      <div className={`text-2xl font-black italic uppercase tracking-widest ${boxReward.color}`}>
+                        {boxReward.name}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              <div className="relative min-h-[40px]">
+                {isUnboxing ? (
+                  <div className="text-lg font-bold text-gray-500 animate-pulse uppercase tracking-widest">
+                    UNBOXING...
+                  </div>
+                ) : boxReward && (
+                  <motion.div
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                  >
+                    <p className="text-white font-black text-2xl mb-1">+{boxReward.xp} XP</p>
+                    {boxReward.badge && (
+                      <p className="text-yellow-400 text-xs font-bold tracking-widest uppercase flex items-center justify-center gap-1">
+                        <Loader2 size={12} className="animate-spin" /> NEW BADGE: {boxReward.badge}
+                      </p>
+                    )}
                   </motion.div>
                 )}
               </div>
