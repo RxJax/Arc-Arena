@@ -105,6 +105,7 @@ const Arena = () => {
       setLastTx(tx.hash);
       
       const receipt = await tx.wait();
+      setTxPending(false); // Hide transaction modal immediately after confirmation
       
       if (receipt.status === 1) {
         let xpEarned = game.xp;
@@ -216,14 +217,12 @@ const Arena = () => {
           const delay = Math.floor(Math.random() * 3000) + 2000;
           
           await new Promise(resolve => {
-            const timeout = setTimeout(() => {
+            setTimeout(() => {
               setReactionWaiting(false);
               setCanClick(true);
               setReactionStartTime(Date.now());
               resolve();
             }, delay);
-            // Allow closing modal to cancel
-            if (!showReactionArena) clearTimeout(timeout);
           });
           
           // The actual XP awarding happens in the click handler now
