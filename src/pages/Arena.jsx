@@ -24,6 +24,10 @@ const Arena = () => {
   const [isFlipping, setIsFlipping] = useState(false);
   const [flipResult, setFlipResult] = useState(null);
   const [flipOutcome, setFlipOutcome] = useState(null); // 'win' or 'lose'
+  const [showSpinWheel, setShowSpinWheel] = useState(false);
+  const [isSpinning, setIsSpinning] = useState(false);
+  const [spinResult, setSpinResult] = useState(null);
+  const [rotation, setRotation] = useState(0);
 
   const games = [
     {
@@ -49,7 +53,7 @@ const Arena = () => {
       name: 'Spin Wheel',
       description: 'Spin for XP, Badges, and Mystery Rewards.',
       icon: <RotateCw size={32} className="text-pink-400" />,
-      fee: '0.1',
+      fee: '2.0',
       color: 'pink',
       xp: 0 // Dynamic
     },
@@ -131,8 +135,39 @@ const Arena = () => {
           await new Promise(resolve => setTimeout(resolve, 2000));
           setShowCoinFlip(false);
         } else if (game.id === 'spin-wheel') {
-          const tiers = [5, 10, 20, 50, 100];
-          xpEarned = tiers[Math.floor(Math.random() * tiers.length)];
+          setShowSpinWheel(true);
+          setIsSpinning(true);
+          
+          const wheelRewards = [
+            { label: '50 XP', xp: 50, color: '#00f2ff' },
+            { label: '100 XP', xp: 100, color: '#7000ff' },
+            { label: '250 XP', xp: 250, color: '#ff00e5' },
+            { label: 'BADGE', xp: 150, color: '#fbbf24', badge: 'Silver' },
+            { label: '500 XP', xp: 500, color: '#00f2ff' },
+            { label: 'BOX', xp: 200, color: '#ec4899', box: true },
+            { label: '750 XP', xp: 750, color: '#7000ff' },
+            { label: 'JACKPOT', xp: 2000, color: '#fbbf24', badge: 'Gold' },
+          ];
+
+          const randomIndex = Math.floor(Math.random() * wheelRewards.length);
+          const newRotation = rotation + (360 * 5) + (360 - (randomIndex * 45)); 
+          setRotation(newRotation);
+          
+          await new Promise(resolve => setTimeout(resolve, 5000));
+          
+          setIsSpinning(false);
+          const reward = wheelRewards[randomIndex];
+          setSpinResult(reward);
+          xpEarned = reward.xp;
+          additionalData = { 
+            result: reward.label,
+            badge: reward.badge,
+            box: reward.box
+          };
+
+          await new Promise(resolve => setTimeout(resolve, 3000));
+          setShowSpinWheel(false);
+          setSpinResult(null);
         } else if (game.id === 'mystery-box') {
           const rarities = [
             { name: 'Common', xp: 20 },
@@ -282,6 +317,77 @@ const Arena = () => {
                   <p className="text-gray-400 font-bold uppercase tracking-tighter text-sm">
                     {flipOutcome === 'win' ? `+${userStats.xp || 50} XP EARNED` : 'ALL XP LOST'}
                   </p>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Spin Wheel Modal */}
+      <AnimatePresence>
+        {showSpinWheel && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[110] bg-black/90 backdrop-blur-md flex items-center justify-center p-6"
+          >
+            <div className="glass-panel max-w-md w-full p-10 text-center relative overflow-hidden">
+              <h2 className="text-3xl font-black italic mb-8">SPIN <span className="text-cyber-pink">WHEEL</span></h2>
+              
+              <div className="relative w-64 h-64 mx-auto mb-12">
+                {/* Pointer */}
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10 w-8 h-8 text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]">
+                  <div className="w-full h-full bg-white clip-path-triangle" style={{ clipPath: 'polygon(50% 100%, 0 0, 100% 0)' }} />
+                </div>
+                
+                {/* Wheel */}
+                <motion.div
+                  animate={{ rotate: rotation }}
+                  transition={{ duration: 5, ease: [0.15, 0, 0.15, 1] }}
+                  className="w-full h-full rounded-full border-8 border-white/10 relative overflow-hidden shadow-[0_0_50px_rgba(112,0,255,0.3)]"
+                >
+                  {[...Array(8)].map((_, i) => (
+                    <div
+                      key={i}
+                      className="absolute top-0 left-1/2 w-1/2 h-full origin-left flex items-center justify-center"
+                      style={{ 
+                        transform: `rotate(${i * 45}deg)`,
+                        backgroundColor: i % 2 === 0 ? 'rgba(255,255,255,0.03)' : 'transparent',
+                        borderRight: '1px solid rgba(255,255,255,0.05)'
+                      }}
+                    >
+                      <span className="text-[10px] font-black tracking-tighter text-white/40 rotate-90 translate-x-16">
+                        {['50 XP', '100 XP', '250 XP', 'BADGE', '500 XP', 'BOX', '750 XP', 'JACKPOT'][i]}
+                      </span>
+                    </div>
+                  ))}
+                </motion.div>
+                
+                {/* Center Cap */}
+                <div className="absolute inset-0 m-auto w-12 h-12 rounded-full bg-cyber-dark border-4 border-white/20 flex items-center justify-center shadow-2xl z-20">
+                  <div className="w-2 h-2 rounded-full bg-cyber-pink animate-ping" />
+                </div>
+              </div>
+
+              <div className="relative min-h-[60px]">
+                {isSpinning ? (
+                  <div className="text-xl font-black italic text-white animate-pulse tracking-widest">
+                    SPINNING...
+                  </div>
+                ) : spinResult && (
+                  <motion.div
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                  >
+                    <div className="text-3xl font-black italic text-cyber-pink mb-1">
+                      {spinResult.label}!
+                    </div>
+                    <p className="text-gray-400 font-bold text-sm uppercase">
+                      +{spinResult.xp} XP AWARDED
+                    </p>
+                  </motion.div>
                 )}
               </div>
             </div>
