@@ -20,6 +20,10 @@ const Arena = () => {
   const [activeGame, setActiveGame] = useState(null);
   const [txPending, setTxPending] = useState(false);
   const [lastTx, setLastTx] = useState(null);
+  const [showCoinFlip, setShowCoinFlip] = useState(false);
+  const [isFlipping, setIsFlipping] = useState(false);
+  const [flipResult, setFlipResult] = useState(null);
+  const [flipOutcome, setFlipOutcome] = useState(null); // 'win' or 'lose'
 
   const games = [
     {
@@ -34,7 +38,7 @@ const Arena = () => {
     {
       id: 'coin-flip',
       name: 'Coin Flip',
-      description: 'Double your USDC or lose it all. 50/50 chance.',
+      description: 'Double your XP or lose it all. 50/50 chance.',
       icon: <Dices size={32} className="text-purple-400" />,
       fee: '0.5',
       color: 'purple',
@@ -106,9 +110,26 @@ const Arena = () => {
           }
           additionalData = { streak: newStreak, lastCheckIn: now };
         } else if (game.id === 'coin-flip') {
+          // Open coin flip modal
+          setShowCoinFlip(true);
+          setIsFlipping(true);
+          setFlipResult(null);
+          
           const won = Math.random() > 0.5;
-          xpEarned = won ? 50 : 10;
+          setFlipOutcome(won ? 'win' : 'lose');
+
+          // Wait for animation
+          await new Promise(resolve => setTimeout(resolve, 3000));
+          
+          setIsFlipping(false);
+          setFlipResult(won ? 'Heads' : 'Tails');
+          
+          xpEarned = won ? (userStats.xp || 50) : -userStats.xp;
           additionalData = { result: won ? 'Won' : 'Lost' };
+
+          // Wait to show result before closing
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          setShowCoinFlip(false);
         } else if (game.id === 'spin-wheel') {
           const tiers = [5, 10, 20, 50, 100];
           xpEarned = tiers[Math.floor(Math.random() * tiers.length)];
@@ -204,6 +225,69 @@ const Arena = () => {
           </motion.div>
         ))}
       </div>
+
+      {/* Coin Flip Modal */}
+      <AnimatePresence>
+        {showCoinFlip && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[110] bg-black/90 backdrop-blur-md flex items-center justify-center p-6"
+          >
+            <div className="glass-panel max-w-sm w-full p-10 text-center relative overflow-hidden">
+              {/* Background Glow */}
+              <div className={`absolute inset-0 opacity-20 bg-${flipOutcome === 'win' ? 'cyber-blue' : 'red-500'} blur-3xl`} />
+              
+              <h2 className="text-3xl font-black italic mb-8 relative">COIN <span className="text-cyber-blue">FLIP</span></h2>
+              
+              <div className="relative h-48 flex items-center justify-center mb-8">
+                <motion.div
+                  animate={isFlipping ? {
+                    rotateY: [0, 1800],
+                    y: [0, -100, 0],
+                    scale: [1, 1.2, 1]
+                  } : {
+                    rotateY: flipResult === 'Heads' ? 0 : 180,
+                    y: 0,
+                    scale: 1
+                  }}
+                  transition={isFlipping ? {
+                    duration: 3,
+                    ease: "easeInOut",
+                  } : {
+                    duration: 0.5,
+                  }}
+                  className="w-32 h-32 relative preserve-3d"
+                >
+                  {/* Heads Face */}
+                  <div className="absolute inset-0 backface-hidden rounded-full bg-gradient-to-br from-cyber-blue to-cyber-purple border-4 border-white/30 shadow-[0_0_30px_rgba(0,242,255,0.5)] flex flex-col items-center justify-center">
+                    <span className="text-2xl font-black text-white italic">XP</span>
+                    <span className="text-[10px] font-bold text-white/70 uppercase">Heads</span>
+                  </div>
+                  
+                  {/* Tails Face */}
+                  <div className="absolute inset-0 backface-hidden rounded-full bg-gray-800 border-4 border-white/10 flex flex-col items-center justify-center [transform:rotateY(180deg)]">
+                    <span className="text-2xl font-black text-gray-500 italic uppercase">Lose</span>
+                    <span className="text-[10px] font-bold text-gray-600 uppercase">Tails</span>
+                  </div>
+                </motion.div>
+              </div>
+
+              <div className="relative">
+                <div className={`text-2xl font-black italic tracking-widest mb-2 ${isFlipping ? 'text-white animate-pulse' : (flipOutcome === 'win' ? 'text-cyber-blue' : 'text-red-500')}`}>
+                  {isFlipping ? 'FLIPPING...' : (flipOutcome === 'win' ? 'YOU WON!' : 'YOU LOST!')}
+                </div>
+                {!isFlipping && flipOutcome && (
+                  <p className="text-gray-400 font-bold uppercase tracking-tighter text-sm">
+                    {flipOutcome === 'win' ? `+${userStats.xp || 50} XP EARNED` : 'ALL XP LOST'}
+                  </p>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Transaction Status Overlay */}
       <AnimatePresence>
