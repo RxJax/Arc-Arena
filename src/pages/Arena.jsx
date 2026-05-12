@@ -392,21 +392,39 @@ const Arena = () => {
                   transition={{ duration: 5, ease: [0.15, 0, 0.15, 1] }}
                   className="w-full h-full rounded-full border-8 border-white/10 relative overflow-hidden shadow-[0_0_50px_rgba(112,0,255,0.3)]"
                 >
-                  {[...Array(8)].map((_, i) => (
-                    <div
-                      key={i}
-                      className="absolute top-0 left-1/2 w-1/2 h-full origin-left flex items-center justify-center"
-                      style={{ 
-                        transform: `rotate(${i * 45}deg)`,
-                        backgroundColor: i % 2 === 0 ? 'rgba(255,255,255,0.03)' : 'transparent',
-                        borderRight: '1px solid rgba(255,255,255,0.05)'
-                      }}
-                    >
-                      <span className="text-[10px] font-black tracking-tighter text-white/40 rotate-90 translate-x-16">
-                        {['50 XP', '100 XP', '250 XP', 'BADGE', '500 XP', 'BOX', '750 XP', 'JACKPOT'][i]}
-                      </span>
-                    </div>
-                  ))}
+                  {[...Array(8)].map((_, i) => {
+                    const labels = ['50 XP', '100 XP', '250 XP', 'BADGE', '500 XP', 'BOX', '750 XP', 'JACKPOT'];
+                    const colors = [
+                      'rgba(0, 242, 255, 0.1)',   // cyan
+                      'rgba(112, 0, 255, 0.1)',   // purple
+                      'rgba(255, 0, 229, 0.1)',   // pink
+                      'rgba(251, 191, 36, 0.15)', // yellow (badge)
+                      'rgba(0, 242, 255, 0.1)',   // cyan
+                      'rgba(236, 72, 153, 0.15)', // pink (box)
+                      'rgba(112, 0, 255, 0.1)',   // purple
+                      'rgba(251, 191, 36, 0.2)'   // yellow (jackpot)
+                    ];
+                    return (
+                      <div
+                        key={i}
+                        className="absolute top-0 left-1/2 w-1/2 h-full origin-left flex items-center justify-center"
+                        style={{ 
+                          transform: `rotate(${i * 45}deg)`,
+                          backgroundColor: colors[i],
+                          borderRight: '1px solid rgba(255,255,255,0.1)'
+                        }}
+                      >
+                        <div className="rotate-90 translate-x-16 flex flex-col items-center gap-1">
+                          <span className={`text-[11px] font-black tracking-tighter text-white drop-shadow-md whitespace-nowrap`}>
+                            {labels[i]}
+                          </span>
+                          {labels[i] === 'JACKPOT' && <Zap size={10} className="text-yellow-400 animate-pulse" />}
+                          {labels[i] === 'BOX' && <Box size={10} className="text-pink-400" />}
+                          {labels[i] === 'BADGE' && <Shield size={10} className="text-yellow-400" />}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </motion.div>
                 
                 {/* Center Cap */}
