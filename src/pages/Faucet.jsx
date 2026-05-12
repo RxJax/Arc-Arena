@@ -40,9 +40,9 @@ const Faucet = () => {
             <div className="flex items-center justify-between p-4 rounded-xl bg-blue-500/5 border border-blue-500/10">
               <div className="flex items-center gap-3">
                 <Clock size={18} className="text-blue-400" />
-                <span className="text-sm font-bold text-blue-400">Cooldown: 24h</span>
+                <span className="text-sm font-bold text-blue-400">Cooldown: 2h</span>
               </div>
-              <span className="text-xs text-gray-500">Available in 12h 45m</span>
+              <span className="text-xs text-gray-500">2 claims available</span>
             </div>
 
             <button
@@ -85,11 +85,7 @@ const Faucet = () => {
               </li>
               <li className="flex items-center gap-3 text-sm text-gray-400">
                 <div className="w-1.5 h-1.5 rounded-full bg-cyber-blue" />
-                Limit: 10 USDC per 24 hours
-              </li>
-              <li className="flex items-center gap-3 text-sm text-gray-400">
-                <div className="w-1.5 h-1.5 rounded-full bg-cyber-blue" />
-                Must have 0.001 ARC for gas (optional)
+                Limit: 20 USDC per 2 hours (you can claim 2 times per 2 hours)
               </li>
             </ul>
           </div>
