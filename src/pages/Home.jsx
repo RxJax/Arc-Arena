@@ -15,34 +15,41 @@ const Home = () => {
 
   useEffect(() => {
     const updateStats = async () => {
-      // Calculate active players (unique addresses in globalActivity)
-      const uniquePlayers = new Set(globalActivity.map(a => a.address)).size;
-      const basePlayers = 1248; // Base offset for established feel
-      
-      // Calculate games played from global activity
-      const baseGames = 89500;
-      const liveGames = globalActivity.length;
+      if (!provider) return;
 
-      // Fetch actual transaction count from Treasury if provider is available
-      let txCount = 45200;
       try {
-        if (provider) {
-          const count = await provider.getTransactionCount("0xe693240068ae7be819446d3284b979e312061619");
-          txCount = Math.max(txCount, count + 45000); // Adding offset
-        }
-      } catch (e) {
-        console.error("Error fetching live tx count:", e);
-      }
+        // Fetch current block number to use as a factor for live feel
+        const blockNumber = await provider.getBlockNumber();
+        const treasuryTxCount = await provider.getTransactionCount("0xe693240068ae7be819446d3284b979e312061619");
+        
+        // Calculate active players
+        const uniquePlayers = new Set(globalActivity.map(a => a.address)).size;
+        const basePlayers = 1500;
+        
+        // Games Played: Base + Live + Block number offset
+        const baseGames = 92000;
+        const liveGames = globalActivity.length;
+        const totalGames = baseGames + liveGames + (blockNumber % 1000);
 
-      setStats({
-        players: (basePlayers + uniquePlayers).toLocaleString(),
-        transactions: (txCount / 1000).toFixed(1) + 'K',
-        games: ((baseGames + liveGames) / 1000).toFixed(1) + 'K',
-        secured: '100%'
-      });
+        // Transactions: Base + Treasury Txs + Block offset
+        const baseTxs = 48000;
+        const totalTxs = baseTxs + treasuryTxCount + (blockNumber % 500);
+
+        setStats({
+          players: (basePlayers + uniquePlayers + (blockNumber % 50)).toLocaleString(),
+          transactions: (totalTxs / 1000).toFixed(1) + 'K',
+          games: (totalGames / 1000).toFixed(1) + 'K',
+          secured: '100%'
+        });
+      } catch (e) {
+        console.error("Error fetching live stats:", e);
+      }
     };
 
     updateStats();
+    // Refresh every 30 seconds
+    const interval = setInterval(updateStats, 30000);
+    return () => clearInterval(interval);
   }, [globalActivity, provider]);
 
   return (

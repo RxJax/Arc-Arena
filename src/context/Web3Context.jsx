@@ -17,7 +17,7 @@ export const ARC_TESTNET_CONFIG = {
 
 export const Web3Provider = ({ children }) => {
   const [account, setAccount] = useState(null);
-  const [provider, setProvider] = useState(null);
+  const [provider, setProvider] = useState(new ethers.providers.JsonRpcProvider(ARC_TESTNET_CONFIG.rpcUrls[0]));
   const [signer, setSigner] = useState(null);
   const [network, setNetwork] = useState(null);
   const [loading, setLoading] = useState(false);
