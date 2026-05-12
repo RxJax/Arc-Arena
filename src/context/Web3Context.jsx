@@ -16,6 +16,12 @@ export const ARC_TESTNET_CONFIG = {
 };
 
 export const Web3Provider = ({ children }) => {
+  const [account, setAccount] = useState(null);
+  const [provider, setProvider] = useState(null);
+  const [signer, setSigner] = useState(null);
+  const [network, setNetwork] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [userStats, setUserStats] = useState({
     xp: 0,
     streak: 0,

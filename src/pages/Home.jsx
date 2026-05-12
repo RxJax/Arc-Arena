@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Play, Coins, Shield, Users, Zap, Activity } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useWeb3 } from '../context/Web3Context';
 
 const Home = () => {
   const { globalActivity } = useWeb3();
