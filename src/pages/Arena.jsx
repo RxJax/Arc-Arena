@@ -11,7 +11,8 @@ import {
   ChevronRight,
   ExternalLink,
   Loader2,
-  Activity
+  Activity,
+  Zap
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -31,6 +32,11 @@ const Arena = () => {
   const [showMysteryBox, setShowMysteryBox] = useState(false);
   const [isUnboxing, setIsUnboxing] = useState(false);
   const [boxReward, setBoxReward] = useState(null);
+  const [showReactionArena, setShowReactionArena] = useState(false);
+  const [reactionStartTime, setReactionStartTime] = useState(null);
+  const [reactionTime, setReactionTime] = useState(null);
+  const [canClick, setCanClick] = useState(false);
+  const [reactionWaiting, setReactionWaiting] = useState(false);
 
   const games = [
     {
@@ -201,9 +207,28 @@ const Arena = () => {
           await new Promise(resolve => setTimeout(resolve, 4000));
           setShowMysteryBox(false);
         } else if (game.id === 'reaction') {
-          const speed = Math.floor(Math.random() * 400) + 100; // Simulating reaction time
-          xpEarned = Math.max(10, 500 - speed);
-          additionalData = { reactionTime: `${speed}ms` };
+          setShowReactionArena(true);
+          setReactionWaiting(true);
+          setReactionTime(null);
+          setCanClick(false);
+          
+          // Wait for a random delay between 2-5 seconds
+          const delay = Math.floor(Math.random() * 3000) + 2000;
+          
+          await new Promise(resolve => {
+            const timeout = setTimeout(() => {
+              setReactionWaiting(false);
+              setCanClick(true);
+              setReactionStartTime(Date.now());
+              resolve();
+            }, delay);
+            // Allow closing modal to cancel
+            if (!showReactionArena) clearTimeout(timeout);
+          });
+          
+          // The actual XP awarding happens in the click handler now
+          // We need to wait for the user to click or time out
+          return; // Early return as we'll call addXP from the handler
         }
 
         await addXP(xpEarned, game.name, additionalData);
@@ -478,6 +503,92 @@ const Arena = () => {
                   </motion.div>
                 )}
               </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Reaction Arena Modal */}
+      <AnimatePresence>
+        {showReactionArena && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[110] bg-black/90 backdrop-blur-md flex items-center justify-center p-6"
+          >
+            <div className="glass-panel max-w-md w-full p-10 text-center relative overflow-hidden">
+              <h2 className="text-3xl font-black italic mb-8">REACTION <span className="text-cyan-400">ARENA</span></h2>
+              
+              <div 
+                className={`relative h-64 rounded-3xl border-2 border-white/5 flex items-center justify-center cursor-pointer transition-colors duration-200 overflow-hidden ${
+                  reactionWaiting ? 'bg-red-500/10 border-red-500/20' : 
+                  (canClick ? 'bg-green-500/20 border-green-500/40' : 'bg-white/5')
+                }`}
+                onClick={async () => {
+                  if (reactionWaiting) {
+                    alert("TOO FAST! Wait for the screen to turn GREEN.");
+                    setShowReactionArena(false);
+                    return;
+                  }
+                  if (canClick) {
+                    const time = Date.now() - reactionStartTime;
+                    setCanClick(false);
+                    setReactionTime(time);
+                    
+                    const xp = Math.max(10, Math.floor(1000 - time));
+                    await addXP(xp, 'Reaction Arena', { reactionTime: `${time}ms` });
+                    
+                    confetti({
+                      particleCount: 100,
+                      spread: 60,
+                      colors: ['#22d3ee', '#ffffff']
+                    });
+
+                    setTimeout(() => setShowReactionArena(false), 3000);
+                  }
+                }}
+              >
+                <div className="text-center relative z-10">
+                  {reactionWaiting ? (
+                    <div className="flex flex-col items-center gap-4">
+                      <div className="w-20 h-20 rounded-full border-4 border-red-500/50 border-t-red-500 animate-spin" />
+                      <span className="text-xl font-black text-red-500 italic tracking-widest">WAIT FOR GREEN...</span>
+                    </div>
+                  ) : (
+                    canClick ? (
+                      <div className="flex flex-col items-center gap-4 animate-bounce">
+                        <Zap size={64} className="text-green-500 fill-current" />
+                        <span className="text-3xl font-black text-green-500 italic">CLICK NOW!</span>
+                      </div>
+                    ) : (
+                      reactionTime && (
+                        <motion.div
+                          initial={{ scale: 0.5, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          className="flex flex-col items-center"
+                        >
+                          <span className="text-5xl font-black text-white mb-2">{reactionTime}ms</span>
+                          <span className="text-cyan-400 font-bold tracking-widest uppercase">SUPER SONIC!</span>
+                        </motion.div>
+                      )
+                    )
+                  )}
+                </div>
+                
+                {/* Scanner line effect */}
+                {reactionWaiting && (
+                  <motion.div 
+                    animate={{ y: [0, 256, 0] }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                    className="absolute top-0 left-0 right-0 h-1 bg-red-500/30 blur-sm z-0"
+                  />
+                )}
+              </div>
+
+              <p className="mt-8 text-gray-500 text-sm font-medium italic">
+                Test your reflexes. Higher speed = More XP.
+              </p>
             </div>
           </motion.div>
         )}
