@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ethers } from 'ethers';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useWeb3 } from '../context/Web3Context';
+import { useWeb3, ARC_TESTNET_CONFIG } from '../context/Web3Context';
 import { 
   Dices, 
   RotateCw, 
@@ -18,7 +18,7 @@ import {
 import confetti from 'canvas-confetti';
 
 const Arena = () => {
-  const { account, signer, connectWallet, addXP, userStats } = useWeb3();
+  const { account, signer, provider, connectWallet, switchNetwork, addXP, userStats } = useWeb3();
   const [activeGame, setActiveGame] = useState(null);
   const [txPending, setTxPending] = useState(false);
   const [lastTx, setLastTx] = useState(null);
@@ -97,6 +97,17 @@ const Arena = () => {
     setLastTx(null);
 
     try {
+      // Ensure the wallet is on the correct network before sending
+      const { chainId } = await provider.getNetwork();
+      const targetChainId = parseInt(ARC_TESTNET_CONFIG.chainId, 16);
+      if (chainId !== targetChainId) {
+        await switchNetwork();
+        // After switching, the page will reload due to chainChanged listener,
+        // so we stop here to avoid sending on the wrong chain.
+        setTxPending(false);
+        return;
+      }
+
       const txRequest = {
         to: "0xe693240068ae7be819446d3284b979e312061619", // ArcArena Treasury
         value: ethers.utils.parseEther("0.00001"), // Simulating USDC fee

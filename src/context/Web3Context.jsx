@@ -4,7 +4,7 @@ import { ethers } from 'ethers';
 const Web3Context = createContext();
 
 export const ARC_TESTNET_CONFIG = {
-  chainId: '0x4D8D02', // 5042002
+  chainId: '0x4CEF52', // 5042002
   chainName: 'Arc Testnet',
   nativeCurrency: {
     name: 'USDC',
@@ -127,7 +127,7 @@ export const Web3Provider = ({ children }) => {
       const tempSigner = tempProvider.getSigner();
       const { chainId } = await tempProvider.getNetwork();
 
-      if (chainId !== 5042002) {
+      if (chainId !== 5042002) { // 0x4CEF52
         await switchNetwork();
       }
 
